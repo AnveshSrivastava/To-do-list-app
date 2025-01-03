@@ -36,6 +36,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const deleteBtn = document.createElement("button");
     deleteBtn.textContent = "Delete";
 
+    // Edit button with pencil icon
+    const editBtn = document.createElement("button");
+    editBtn.innerHTML = "✏️"; // Pencil icon
+
+    actions.appendChild(editBtn);
     actions.appendChild(completeBtn);
     actions.appendChild(deleteBtn);
 
@@ -87,6 +92,14 @@ document.addEventListener("DOMContentLoaded", () => {
     deleteBtn.addEventListener("click", () => {
       clearInterval(interval);
       li.remove();
+    });
+
+    // Edit task functionality
+    editBtn.addEventListener("click", () => {
+      const newTask = prompt("Edit your task:", task);
+      if (newTask) {
+        span.textContent = newTask;
+      }
     });
 
     if (totalSeconds > 0) {

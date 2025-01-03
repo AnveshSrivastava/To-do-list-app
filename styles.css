@@ -153,3 +153,29 @@
   .completed {
     background: #360040;
   }
+
+  .actions button {
+    margin: 0 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .actions button:hover {
+    background-color: #e84393;
+    color: white;
+  }
+  
+  input[type="text"] {
+    font-size: 16px;
+    padding: 5px;
+    width: 80%;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+  }
+  
+  input[type="text"]:focus {
+    outline: none;
+    border-color: #e84393;
+  }
+  
