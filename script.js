@@ -115,3 +115,82 @@ document.addEventListener("DOMContentLoaded", () => {
     return `${String(hrs).padStart(2, "0")}:${String(mins).padStart(2, "0")}:${String(secs).padStart(2, "0")}`;
   };
 });
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const calendar = document.getElementById("calendar");
+  const todoSection = document.getElementById("todo-section");
+  const dateHeader = document.getElementById("date-header");
+  const selectedDateElement = document.getElementById("selected-date");
+  const todoInput = document.getElementById("todo-input");
+  const addBtn = document.getElementById("add-btn");
+  const todoList = document.getElementById("todo-list");
+
+  let selectedDate = null;
+
+  // Generate the calendar for the current month
+  const generateCalendar = () => {
+    const date = new Date();
+    const currentMonth = date.getMonth();
+    const currentYear = date.getFullYear();
+    const firstDayOfMonth = new Date(currentYear, currentMonth, 1);
+    const lastDayOfMonth = new Date(currentYear, currentMonth + 1, 0);
+    const totalDays = lastDayOfMonth.getDate();
+
+    calendar.innerHTML = "";
+
+    // Generate days of the month
+    for (let i = 1; i <= totalDays; i++) {
+      const dayElement = document.createElement("div");
+      dayElement.textContent = i;
+      dayElement.addEventListener("click", () => showTodoForDate(i));
+      calendar.appendChild(dayElement);
+    }
+  };
+
+  const showTodoForDate = (day) => {
+    selectedDate = new Date();
+    selectedDate.setDate(day);
+    selectedDate.setMonth(new Date().getMonth());
+
+    selectedDateElement.textContent = selectedDate.toDateString();
+    dateHeader.textContent = `Tasks for ${selectedDate.toDateString()}`;
+    todoSection.style.display = "block";
+    loadTasksForSelectedDate();
+  };
+
+  // Add a task for the selected date
+  addBtn.addEventListener("click", () => {
+    const task = todoInput.value.trim();
+    if (!task) return;
+
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || {};
+    const dateKey = selectedDate.toDateString();
+
+    if (!tasks[dateKey]) {
+      tasks[dateKey] = [];
+    }
+
+    tasks[dateKey].push(task);
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+
+    todoInput.value = "";
+    loadTasksForSelectedDate();
+  });
+
+  const loadTasksForSelectedDate = () => {
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || {};
+    const dateKey = selectedDate.toDateString();
+    const taskListForDate = tasks[dateKey] || [];
+
+    todoList.innerHTML = "";
+    taskListForDate.forEach(task => {
+      const li = document.createElement("li");
+      li.textContent = task;
+      todoList.appendChild(li);
+    });
+  };
+
+  generateCalendar();
+});
