@@ -9,9 +9,9 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
 
   const formatTime = (seconds) => {
-    const hrs = Math.floor(seconds / 3600).toString().padStart(2, "0");
-    const mins = Math.floor((seconds % 3600) / 60).toString().padStart(2, "0");
-    const secs = (seconds % 60).toString().padStart(2, "0");
+    const hrs = String(Math.floor(seconds / 3600)).padStart(2, "0");
+    const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+    const secs = String(seconds % 60).padStart(2, "0");
     return `${hrs}:${mins}:${secs}`;
   };
 
@@ -35,15 +35,11 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const saveTasks = () => {
-    const tasks = [];
-    todoList.querySelectorAll("li").forEach((li) => {
-      const task = {
-        text: li.querySelector("span").textContent,
-        remainingSeconds: parseInt(li.dataset.remainingSeconds),
-        isCompleted: li.classList.contains("completed"),
-      };
-      tasks.push(task);
-    });
+    const tasks = Array.from(todoList.querySelectorAll("li")).map((li) => ({
+      text: li.querySelector("span").textContent,
+      remainingSeconds: parseInt(li.dataset.remainingSeconds, 10),
+      isCompleted: li.classList.contains("completed"),
+    }));
     localStorage.setItem("tasks", JSON.stringify(tasks));
   };
 
@@ -51,7 +47,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const li = createElement("li");
     li.dataset.remainingSeconds = remainingSeconds;
 
-    const span = createElement("span", text);
+    const taskText = createElement("span", text);
     const timer = createElement("span", formatTime(remainingSeconds), "timer");
 
     const editBtn = createElement("button", "✏️");
@@ -60,7 +56,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const actions = createElement("div", "", "actions");
     actions.append(editBtn, completeBtn, deleteBtn);
-    li.append(span, timer, actions);
+    li.append(taskText, timer, actions);
     todoList.appendChild(li);
 
     if (isCompleted) {
@@ -69,26 +65,29 @@ document.addEventListener("DOMContentLoaded", () => {
       startTimer(li, timer);
     }
 
-    bindTaskActions(li, timer, editBtn, completeBtn, deleteBtn);
+    setupTaskActions(li, timer, editBtn, completeBtn, deleteBtn);
   };
 
   const addTask = () => {
-    const task = todoInput.value.trim();
-    const hours = parseInt(hoursInput.value) || 0;
-    const minutes = parseInt(minutesInput.value) || 0;
-    const seconds = parseInt(secondsInput.value) || 0;
+    const taskText = todoInput.value.trim();
+    const hours = parseInt(hoursInput.value, 10) || 0;
+    const minutes = parseInt(minutesInput.value, 10) || 0;
+    const seconds = parseInt(secondsInput.value, 10) || 0;
     const totalSeconds = hours * 3600 + minutes * 60 + seconds;
 
-    if (!task) return alert("Please enter a task!");
+    if (!taskText) {
+      alert("Please enter a task!");
+      return;
+    }
 
-    const newTask = { text: task, remainingSeconds: totalSeconds, isCompleted: false };
+    const newTask = { text: taskText, remainingSeconds: totalSeconds, isCompleted: false };
     addTaskToDOM(newTask);
     saveTasks();
     resetInputs();
   };
 
   const startTimer = (li, timer) => {
-    let remainingSeconds = parseInt(li.dataset.remainingSeconds);
+    let remainingSeconds = parseInt(li.dataset.remainingSeconds, 10);
     const interval = setInterval(() => {
       if (remainingSeconds > 0) {
         remainingSeconds--;
@@ -104,27 +103,28 @@ document.addEventListener("DOMContentLoaded", () => {
     li.dataset.intervalId = interval;
   };
 
-  const bindTaskActions = (li, timer, editBtn, completeBtn, deleteBtn) => {
+  const setupTaskActions = (li, timer, editBtn, completeBtn, deleteBtn) => {
     const toggleCompletion = () => {
       const isCompleted = li.classList.toggle("completed");
       completeBtn.textContent = isCompleted ? "Resume" : "Complete";
-      clearInterval(parseInt(li.dataset.intervalId));
-      if (!isCompleted && parseInt(li.dataset.remainingSeconds) > 0) {
+
+      clearInterval(parseInt(li.dataset.intervalId, 10));
+      if (!isCompleted && parseInt(li.dataset.remainingSeconds, 10) > 0) {
         startTimer(li, timer);
       }
       saveTasks();
     };
 
     const deleteTask = () => {
-      clearInterval(parseInt(li.dataset.intervalId));
+      clearInterval(parseInt(li.dataset.intervalId, 10));
       li.remove();
       saveTasks();
     };
 
     const editTask = () => {
-      const newTask = prompt("Edit your task:", li.querySelector("span").textContent);
-      if (newTask) {
-        li.querySelector("span").textContent = newTask;
+      const updatedText = prompt("Edit your task:", li.querySelector("span").textContent);
+      if (updatedText) {
+        li.querySelector("span").textContent = updatedText;
         saveTasks();
       }
     };
@@ -137,5 +137,3 @@ document.addEventListener("DOMContentLoaded", () => {
   addBtn.addEventListener("click", addTask);
   loadTasks();
 });
-
-
