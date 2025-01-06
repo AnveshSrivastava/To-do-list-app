@@ -212,8 +212,6 @@ input[type="text"]:focus {
   right: 10%;
   animation-duration: 15s;
 }
-
-/* Animations */
 @keyframes move {
   0% {
       transform: translateY(0) translateX(0);
