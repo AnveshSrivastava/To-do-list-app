@@ -34,11 +34,11 @@ A beautifully designed, minimalist to-do list application focused on a calm and 
 
 1. **Clone this repository or download the ZIP file:**
    ```bash
-   git clone https://github.com/your-username/ambient-todo-list.git
+   git clone https://github.com/AnveshSrivastava/To-do-list-app
    ```
 2. **Navigate to the project directory:**
    ```bash
-   cd ambient-todo-list
+   cd To-do-list-app
    ```
 3. **Open `index.html` in your browser.**
 
