@@ -71,7 +71,7 @@ Want to tweak the look? It's easy!
 ## Folder Structure
 
 ```bash
-ambient-todo-list/
+To-do-list-app/
 ├── index.html      # Main HTML file
 ├── styles.css      # CSS for layout, themes, and animations
 ├── script.js       # JavaScript for app logic
