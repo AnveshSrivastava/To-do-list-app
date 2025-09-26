@@ -1,139 +1,166 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const todoInput = document.getElementById("todo-input");
-  const addBtn = document.getElementById("add-btn");
-  const todoList = document.getElementById("todo-list");
-  const [hoursInput, minutesInput, secondsInput] = [
-    document.getElementById("hours-input"),
-    document.getElementById("minutes-input"),
-    document.getElementById("seconds-input"),
-  ];
+    const todoInput = document.getElementById("todo-input");
+    const addBtn = document.getElementById("add-btn");
+    const todoList = document.getElementById("todo-list");
+    const clockElement = document.getElementById("clock");
+    const themeButtons = document.querySelectorAll(".theme-btn");
+    const [hoursInput, minutesInput, secondsInput] = [
+        document.getElementById("hours-input"),
+        document.getElementById("minutes-input"),
+        document.getElementById("seconds-input"),
+    ];
 
-  const formatTime = (seconds) => {
-    const hrs = String(Math.floor(seconds / 3600)).padStart(2, "0");
-    const mins = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
-    const secs = String(seconds % 60).padStart(2, "0");
-    return `${hrs}:${mins}:${secs}`;
-  };
+    const formatTime = (seconds) => {
+        if (isNaN(seconds) || seconds <= 0) return "00:00:00";
+        const h = String(Math.floor(seconds / 3600)).padStart(2, "0");
+        const m = String(Math.floor((seconds % 3600) / 60)).padStart(2, "0");
+        const s = String(seconds % 60).padStart(2, "0");
+        return `${h}:${m}:${s}`;
+    };
 
-  const resetInputs = () => {
-    todoInput.value = "";
-    hoursInput.value = "";
-    minutesInput.value = "";
-    secondsInput.value = "";
-  };
+    const updateClock = () => {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const dateString = now.toLocaleDateString([], { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        clockElement.textContent = `${dateString} | ${timeString}`;
+    };
 
-  const createElement = (tag, textContent = "", className = "") => {
-    const element = document.createElement(tag);
-    if (textContent) element.textContent = textContent;
-    if (className) element.classList.add(className);
-    return element;
-  };
+    const applyTheme = (themeName) => {
+        document.body.className = `theme-${themeName}`;
+        localStorage.setItem("todo-theme", themeName);
 
-  const loadTasks = () => {
-    const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-    tasks.forEach((task) => addTaskToDOM(task));
-  };
+        themeButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.theme === themeName));
+    };
 
-  const saveTasks = () => {
-    const tasks = Array.from(todoList.querySelectorAll("li")).map((li) => ({
-      text: li.querySelector("span").textContent,
-      remainingSeconds: parseInt(li.dataset.remainingSeconds, 10),
-      isCompleted: li.classList.contains("completed"),
-    }));
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  };
+    themeButtons.forEach(btn => {
+        btn.addEventListener("click", () => applyTheme(btn.dataset.theme));
+    });
 
-  const addTaskToDOM = ({ text, remainingSeconds, isCompleted }) => {
-    const li = createElement("li");
-    li.dataset.remainingSeconds = remainingSeconds;
+    const loadTheme = () => {
+        const savedTheme = localStorage.getItem("todo-theme") || "default";
+        applyTheme(savedTheme);
+    };
 
-    const taskText = createElement("span", text);
-    const timer = createElement("span", formatTime(remainingSeconds), "timer");
+    
+    
+    const loadTasks = () => {
+        const tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+        tasks.forEach(task => addTaskToDOM(task));
+    };
 
-    const editBtn = createElement("button", "✏️");
-    const completeBtn = createElement("button", isCompleted ? "Resume" : "Complete");
-    const deleteBtn = createElement("button", "Delete");
-
-    const actions = createElement("div", "", "actions");
-    actions.append(editBtn, completeBtn, deleteBtn);
-    li.append(taskText, timer, actions);
-    todoList.appendChild(li);
-
-    if (isCompleted) {
-      li.classList.add("completed");
-    } else if (remainingSeconds > 0) {
-      startTimer(li, timer);
-    }
-
-    setupTaskActions(li, timer, editBtn, completeBtn, deleteBtn);
-  };
-
-  const addTask = () => {
-    const taskText = todoInput.value.trim();
-    const hours = parseInt(hoursInput.value, 10) || 0;
-    const minutes = parseInt(minutesInput.value, 10) || 0;
-    const seconds = parseInt(secondsInput.value, 10) || 0;
-    const totalSeconds = hours * 3600 + minutes * 60 + seconds;
-
-    if (!taskText) {
-      alert("Please enter a task!");
-      return;
-    }
-
-    const newTask = { text: taskText, remainingSeconds: totalSeconds, isCompleted: false };
-    addTaskToDOM(newTask);
-    saveTasks();
-    resetInputs();
-  };
-
-  const startTimer = (li, timer) => {
-    let remainingSeconds = parseInt(li.dataset.remainingSeconds, 10);
-    const interval = setInterval(() => {
-      if (remainingSeconds > 0) {
-        remainingSeconds--;
+    const saveTasks = () => {
+        const tasks = Array.from(todoList.children).map(li => ({
+            text: li.querySelector(".task-text").textContent,
+            remainingSeconds: parseInt(li.dataset.remainingSeconds, 10),
+            isCompleted: li.classList.contains("completed"),
+        }));
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+    };
+    
+    const addTaskToDOM = ({ text, remainingSeconds, isCompleted }) => {
+        const li = document.createElement("li");
         li.dataset.remainingSeconds = remainingSeconds;
+
+        const taskText = document.createElement("span");
+        taskText.className = "task-text";
+        taskText.textContent = text;
+
+        const timer = document.createElement("span");
+        timer.className = "timer";
         timer.textContent = formatTime(remainingSeconds);
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+        
+        const completeBtn = document.createElement("button");
+        completeBtn.innerHTML = "✓";
+        completeBtn.title = "Complete";
+
+        const editBtn = document.createElement("button");
+        editBtn.innerHTML = "✏️";
+        editBtn.title = "Edit";
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.innerHTML = "🗑️";
+        deleteBtn.title = "Delete";
+        
+        actions.append(completeBtn, editBtn, deleteBtn);
+        li.append(taskText, timer, actions);
+        todoList.appendChild(li);
+
+        if (isCompleted) {
+            li.classList.add("completed");
+        } else if (remainingSeconds > 0) {
+            startTimer(li, timer);
+        }
+
+        setupTaskActions(li, timer, completeBtn, editBtn, deleteBtn);
+    };
+
+    const addTask = () => {
+        const taskText = todoInput.value.trim();
+        if (!taskText) return;
+
+        const totalSeconds = (parseInt(hoursInput.value) || 0) * 3600 +
+                             (parseInt(minutesInput.value) || 0) * 60 +
+                             (parseInt(secondsInput.value) || 0);
+
+        addTaskToDOM({ text: taskText, remainingSeconds: totalSeconds, isCompleted: false });
         saveTasks();
-      } else {
-        clearInterval(interval);
-        timer.textContent = "00:00:00";
-      }
-    }, 1000);
-
-    li.dataset.intervalId = interval;
-  };
-
-  const setupTaskActions = (li, timer, editBtn, completeBtn, deleteBtn) => {
-    const toggleCompletion = () => {
-      const isCompleted = li.classList.toggle("completed");
-      completeBtn.textContent = isCompleted ? "Resume" : "Complete";
-
-      clearInterval(parseInt(li.dataset.intervalId, 10));
-      if (!isCompleted && parseInt(li.dataset.remainingSeconds, 10) > 0) {
-        startTimer(li, timer);
-      }
-      saveTasks();
+        
+        todoInput.value = "";
+        hoursInput.value = "";
+        minutesInput.value = "";
+        secondsInput.value = "";
     };
 
-    const deleteTask = () => {
-      clearInterval(parseInt(li.dataset.intervalId, 10));
-      li.remove();
-      saveTasks();
+    const startTimer = (li, timerElement) => {
+        let remainingSeconds = parseInt(li.dataset.remainingSeconds, 10);
+        const intervalId = setInterval(() => {
+            if (remainingSeconds > 0 && !li.classList.contains("completed")) {
+                remainingSeconds--;
+                li.dataset.remainingSeconds = remainingSeconds;
+                timerElement.textContent = formatTime(remainingSeconds);
+                // Save less frequently to improve performance
+                if (remainingSeconds % 5 === 0) saveTasks();
+            } else {
+                clearInterval(intervalId);
+                if (remainingSeconds === 0) timerElement.textContent = "Time's up!";
+            }
+        }, 1000);
+        li.dataset.intervalId = intervalId;
     };
 
-    const editTask = () => {
-      const updatedText = prompt("Edit your task:", li.querySelector("span").textContent);
-      if (updatedText) {
-        li.querySelector("span").textContent = updatedText;
-        saveTasks();
-      }
+    const setupTaskActions = (li, timer, completeBtn, editBtn, deleteBtn) => {
+        completeBtn.addEventListener("click", () => {
+            li.classList.toggle("completed");
+            saveTasks();
+        });
+
+        deleteBtn.addEventListener("click", () => {
+            clearInterval(parseInt(li.dataset.intervalId, 10));
+            li.remove();
+            saveTasks();
+        });
+        
+        editBtn.addEventListener("click", () => {
+             const currentText = li.querySelector(".task-text").textContent;
+             const newText = prompt("Edit your task:", currentText);
+             if (newText && newText.trim() !== "") {
+                 li.querySelector(".task-text").textContent = newText.trim();
+                 saveTasks();
+             }
+        });
     };
 
-    completeBtn.addEventListener("click", toggleCompletion);
-    deleteBtn.addEventListener("click", deleteTask);
-    editBtn.addEventListener("click", editTask);
-  };
-
-  addBtn.addEventListener("click", addTask);
-  loadTasks();
+    // --- Initial Setup ---
+    addBtn.addEventListener("click", addTask);
+    todoInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") addTask();
+    });
+    
+    loadTheme();
+    loadTasks();
+    updateClock();
+    setInterval(updateClock, 1000 * 30); // Update clock every 30 seconds
 });
